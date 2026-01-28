@@ -3,13 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 class Cliente extends Model
 {
-    use SoftDeletes;
-
     protected $fillable = [
         'tipo_cliente',
         'identificacion',
@@ -25,8 +22,6 @@ class Cliente extends Model
         'created_by',
         'updated_by',
     ];
-
-    protected $dates = ['deleted_at'];
 
     /**
      * Boot del modelo - Auditoría automática

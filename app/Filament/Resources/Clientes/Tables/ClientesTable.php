@@ -4,12 +4,15 @@ namespace App\Filament\Resources\Clientes\Tables;
 
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\BooleanColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TernaryFilter;
+use Illuminate\Database\Eloquent\Collection;
 
 class ClientesTable
 {
@@ -90,10 +93,6 @@ class ClientesTable
                 ->dateTime('d/m/Y H:i')
                 ->toggleable(isToggledHiddenByDefault: true),
 
-            TextColumn::make('deleted_at')
-                ->label('Eliminado')
-                ->dateTime('d/m/Y H:i')
-                ->toggleable(isToggledHiddenByDefault: true),
         ];
     }
 
@@ -133,7 +132,8 @@ class ClientesTable
     {
         return [
             // Editar
-            EditAction::make(),
+            EditAction::make()
+                ->visible(fn () => auth()->user()->can('Update:Cliente')),
 
             // Desactivar/Activar (Borrado Lógico)
             Action::make('toggleActive')
@@ -143,7 +143,8 @@ class ClientesTable
                 ->action(function ($record) {
                     $record->update(['is_active' => !$record->is_active]);
                 })
-                ->requiresConfirmation(),
+                ->requiresConfirmation()
+                ->visible(fn () => auth()->user()->can('Update:Cliente')),
 
             // Eliminar Permanentemente
             DeleteAction::make()
@@ -152,7 +153,8 @@ class ClientesTable
                 ->modalDescription('Esta acción es irreversible. Se eliminarán todos los datos del cliente.')
                 ->color('danger')
                 ->icon('heroicon-o-trash')
-                ->requiresConfirmation(),
+                ->requiresConfirmation()
+                ->visible(fn () => auth()->user()->can('Delete:Cliente')),
         ];
     }
 
@@ -160,32 +162,35 @@ class ClientesTable
     {
         return [
             // Desactivar en lote
-            Action::make('desactivarEnLote')
+            BulkAction::make('desactivarEnLote')
                 ->label('Desactivar Seleccionados')
                 ->icon('heroicon-o-x-circle')
                 ->color('warning')
-                ->action(function ($records) {
+                ->action(function (Collection $records) {
                     $records->each->update(['is_active' => false]);
                 })
                 ->requiresConfirmation()
-                ->deselectRecordsAfterCompletion(),
+                ->deselectRecordsAfterCompletion()
+                ->visible(fn () => auth()->user()->can('Update:Cliente')),
 
             // Activar en lote
-            Action::make('activarEnLote')
+            BulkAction::make('activarEnLote')
                 ->label('Activar Seleccionados')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
-                ->action(function ($records) {
+                ->action(function (Collection $records) {
                     $records->each->update(['is_active' => true]);
                 })
                 ->requiresConfirmation()
-                ->deselectRecordsAfterCompletion(),
+                ->deselectRecordsAfterCompletion()
+                ->visible(fn () => auth()->user()->can('Update:Cliente')),
 
             // Eliminar permanentemente
             DeleteBulkAction::make()
                 ->label('Eliminar Permanentemente')
                 ->color('danger')
-                ->icon('heroicon-o-trash'),
+                ->icon('heroicon-o-trash')
+                ->visible(fn () => auth()->user()->can('Delete:Cliente')),
         ];
     }
 }
